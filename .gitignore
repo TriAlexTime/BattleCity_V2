@@ -1,41 +1,25 @@
-# Prerequisites
-*.d
+# Файлы пользовательских настроек Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Папки и файлы, генерируемые средой разработки
+.vs/
+*.opensdf
+*.sdf
 
-# Precompiled Headers
-*.gch
-*.pch
+# Папки со скомпилированными файлами (результаты сборки)
+Debug/
+Release/
+x64/
+x86/
+bin/
+obj/
 
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
+# Другие временные файлы
+*.VC.db
+*.ipch
+*.[Pp]db
+*.tlog
+*.log
