@@ -45,6 +45,7 @@ private:
 
     void cleanupObjects();
 
+    void drawInfoPanel();
 
     Map m_map;
 

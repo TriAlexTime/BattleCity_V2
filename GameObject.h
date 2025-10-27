@@ -13,7 +13,7 @@ public:
      Обновляет логику объекта (движение, таймеры и т.д.).
     @param deltaTime Время, прошедшее с последнего кадра.
     */
-    virtual void update(float deltaTime) = 0;
+    virtual void update(float deltaTime, const Map& map) = 0;
 
     /*
      Отрисовывает объект на экране.
