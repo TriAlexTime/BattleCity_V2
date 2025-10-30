@@ -18,6 +18,8 @@ public:
 
     void run();
 
+    void render();
+
     /*
      Обрабатывает события ввода от ОС (GLUT).
      @param key Код клавиши.
@@ -37,11 +39,9 @@ private:
     */
     void update(float deltaTime);
 
-    void render();
-
     void checkCollisions();
 
-    void spawnEnemyTank();
+    void spawnEnemyTank(float deltaTime);
 
     void cleanupObjects();
 
@@ -60,4 +60,7 @@ private:
     int m_enemiesLeftToSpawn; // 'last_tanks'
     float m_enemySpawnTimer = 0.0f; // Таймер для спавна
     bool m_isRunning = true;
+
+    enum class GameState { PLAYING, WIN, GAME_OVER };
+    GameState m_gameState = GameState::PLAYING;
 };

@@ -1,4 +1,6 @@
 #include "Map.h"
+#include "Graphics.h"
+#include <GL/glut.h>
 #include <fstream>   // Для работы с файлами (ifstream)
 #include <iostream>  // Для вывода ошибок
 #include <cstdlib>   // Для rand() и srand()
@@ -62,19 +64,30 @@ void Map::loadFromFile(const std::string& filename) {
     }
 }
 
-// Функцию draw() нужно будет реализовать с использованием графической библиотеки.
-// Она будет похожа на комбинацию drawMap() и drawCell() из battlecity.c
-void Map::draw() {
-    // Примерная логика:
-    // for (int i = 0; i < MAP_HEIGHT; ++i) {
-    //     for (int j = 0; j < MAP_WIDTH; ++j) {
-    //         // Вызвать функцию отрисовки для ячейки grid[i][j]
-    //         // с координатами (j * CELL_SIZE, i * CELL_SIZE)
-    //     }
-    // }
+void Map::draw(bool isOverlay) {
+    for (int i = 0; i < MAP_HEIGHT; ++i) {
+        for (int j = 0; j < MAP_WIDTH; ++j) {
+            bool shouldDraw = isOverlay ? (grid[i][j].material == Material::LEAFS)
+                : (grid[i][j].material != Material::LEAFS);
+
+            if (shouldDraw) {
+                float worldX = j * CELL_SIZE;
+                float worldY = i * CELL_SIZE;
+                switch (grid[i][j].material) {
+                case Material::BRICK: glColor3f(0.7f, 0.25f, 0.0f); break;
+                case Material::CONCRETE: glColor3f(0.5f, 0.5f, 0.5f); break;
+                case Material::WATER: glColor3f(0.2f, 0.2f, 0.8f); break;
+                case Material::LEAFS: glColor3f(0.0f, 0.6f, 0.0f); break;
+                case Material::HQ: glColor3f(0.9f, 0.9f, 0.9f); break;
+                default: glColor3f(0.1f, 0.1f, 0.1f); break;
+                }
+                drawRectangle(worldX, worldY, worldX + CELL_SIZE, worldY + CELL_SIZE);
+            }
+        }
+    }
 }
 
-bool Map::checkTankCollision(float x, float y, int dir) {
+bool Map::checkTankCollision(float x, float y, int dir) const {
     // Размер танка 40x40, значит его края находятся на расстоянии 20 от центра (x, y)
     float tankEdgeOffset = 20.0f;
 
@@ -130,22 +143,30 @@ bool Map::checkTankCollision(float x, float y, int dir) {
     return true;
 }
 
-bool Map::checkProjectileHit(float& projX, float& projY, int dir, int damage) {
+ProjectileHitResult Map::checkProjectileHit(float& projX, float& projY, int dir, int damage) {
     int partX = static_cast<int>(projX / PART_SIZE);
     int partY = static_cast<int>(projY / PART_SIZE);
 
     int cellX = partX / PARTS_PER_CELL;
     int cellY = partY / PARTS_PER_CELL;
 
-    // Проверяем, не вышли ли за пределы карты
+    // Проверка выхода за пределы карты
     if (cellX < 0 || cellX >= MAP_WIDTH || cellY < 0 || cellY >= MAP_HEIGHT) {
-        return false;
+        return ProjectileHitResult::NONE;
     }
 
     Part& hitPart = grid[cellY][cellX].parts[partY % PARTS_PER_CELL][partX % PARTS_PER_CELL];
     Material hitMaterial = grid[cellY][cellX].material;
 
-    if (hitPart.collision == 2) { // Столкнулись со стеной (кирпич/бетон/штаб)
+    if (hitPart.collision == 2) { // Столкновение со стеной (кирпич/бетон/штаб)
+        // Если попали в штаб, игра окончена
+        if (hitMaterial == Material::HQ) {
+            hitPart.exist = false;
+            hitPart.collision = 0;
+            return ProjectileHitResult::HQ_HIT;
+        }
+
+        // Наносим урон стене
         if (hitPart.health > 0) {
             hitPart.health -= damage;
             if (hitPart.health <= 0) {
@@ -153,31 +174,10 @@ bool Map::checkProjectileHit(float& projX, float& projY, int dir, int damage) {
                 hitPart.collision = 0;
             }
         }
-
-        // Логика "взрывной волны" для кирпича, если урон позволяет
-        if (hitMaterial == Material::BRICK && damage >= 1) {
-            if (dir == 1 || dir == 2) { // UP or DOWN
-                for (int i = -2; i <= 2; ++i) {
-                    if (partX + i >= 0 && partX + i < MAP_WIDTH * PARTS_PER_CELL) {
-                        grid[cellY][(partX + i) / PARTS_PER_CELL].parts[partY % PARTS_PER_CELL][(partX + i) % PARTS_PER_CELL].exist = false;
-                        grid[cellY][(partX + i) / PARTS_PER_CELL].parts[partY % PARTS_PER_CELL][(partX + i) % PARTS_PER_CELL].collision = 0;
-                    }
-                }
-            }
-            else { // LEFT or RIGHT
-                for (int i = -2; i <= 2; ++i) {
-                    if (partY + i >= 0 && partY + i < MAP_HEIGHT * PARTS_PER_CELL) {
-                        grid[(partY + i) / PARTS_PER_CELL][cellX].parts[(partY + i) % PARTS_PER_CELL][partX % PARTS_PER_CELL].exist = false;
-                        grid[(partY + i) / PARTS_PER_CELL][cellX].parts[(partY + i) % PARTS_PER_CELL][partX % PARTS_PER_CELL].collision = 0;
-                    }
-                }
-            }
-        }
-
-        return true; // Снаряд попал и должен быть уничтожен
+        return ProjectileHitResult::WALL; // Попали в обычную стену
     }
 
-    return false; // Нет столкновения
+    return ProjectileHitResult::NONE; // Нет столкновения
 }
 
 void Map::spawnBonus() {

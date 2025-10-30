@@ -11,6 +11,8 @@ public:
 
     void update(float deltaTime, const Map& map) override;
 
+    void draw() override;
+
 private:
     // Таймер для принятия решений ИИ
     float aiTimer = 0.0f;

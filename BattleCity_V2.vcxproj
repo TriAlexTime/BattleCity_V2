@@ -104,10 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\freeglut\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\freeglut\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>x64/freeglut.lib;opengl32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,11 +131,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BattleCity_V2.cpp" />
+    <ClCompile Include="EnemyTank.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Graphics.cpp" />
+    <ClCompile Include="Map.cpp" />
+    <ClCompile Include="PlayerTank.cpp" />
+    <ClCompile Include="Projectile.cpp" />
+    <ClCompile Include="Tank.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EnemyTank.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Graphics.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="PlayerTank.h" />
     <ClInclude Include="Projectile.h" />

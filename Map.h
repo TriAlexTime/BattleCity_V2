@@ -20,6 +20,12 @@ enum class BonusType {
     UPGRADE
 };
 
+enum class ProjectileHitResult {
+    NONE,      // Ничего не задето
+    WALL,      // Попадание в обычную стену
+    HQ_HIT     // Попадание в штаб
+};
+
 // Структура для замена массива parts
 struct Part {
     bool exist = true;
@@ -56,17 +62,17 @@ public:
     void loadFromFile(const std::string& filename);
 
     /*
-     Отрисовывает все ячейки карты (логика из drawMap, drawCell).
+     Отрисовывает все ячейки карты.
     */
-    void draw();
+    void draw(bool isOverlay);
 
-    // --- Методы для проверки столкновений (логика из C-функций) ---
+    // --- Методы для проверки столкновений ---
 
     /*
      Проверяет, может ли танк двигаться в заданном направлении.
      @return true, если путь свободен.
     */
-    bool checkTankCollision(float x, float y, int dir);
+    bool checkTankCollision(float x, float y, int dir) const;
 
     /*
      Проверяет, попал ли снаряд в стену и если да - наносит урон стене.
@@ -76,7 +82,7 @@ public:
      @return true, если снаряд столкнулся и его надо уничтожить.
     */
 
-    bool checkProjectileHit(float& projX, float& projY, int dir, int damage);
+    ProjectileHitResult checkProjectileHit(float& projX, float& projY, int dir, int damage);
 
     // --- Логика бонусов ---
 

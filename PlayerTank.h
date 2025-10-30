@@ -13,7 +13,7 @@ public:
      @brief Обрабатывает нажатия клавиш от игрока.
      @param key Код нажатой клавиши.
     */
-    void handleInput(int key);
+    void handleInput(int key, bool isPressed);
 
     /*
      @brief Обновляет логику игрока.
@@ -21,4 +21,6 @@ public:
     void update(float deltaTime, const Map& map) override;
 
     // Метод fire() будет вызван из handleInput()
+
+    void draw() override;
 };
