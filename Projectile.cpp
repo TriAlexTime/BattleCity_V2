@@ -18,7 +18,7 @@ Projectile::Projectile(float startX, float startY, int dir, int dmg, Owner owner
     this->height = 4;
 }
 
-void Projectile::update(float deltaTime, const Map& map) {
+void Projectile::update(float deltaTime, const Map& map, float playerX, float playerY) {
     if (!m_isAlive) {
         return;
     }
@@ -34,7 +34,7 @@ void Projectile::update(float deltaTime, const Map& map) {
     // Проверяем, не вылетел ли снаряд за пределы карты.
     // Если да, то помечаем его на удаление.
     // Размеры карты 13*48 = 624
-    if (x < 0 || x > 13 * 48 || y < 0 || y > 13 * 48) {
+    if (x < 0 || x >= 13 * 48 || y < 0 || y >= 13 * 48) {
         m_isAlive = false;
     }
 }

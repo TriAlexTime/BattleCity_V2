@@ -2,6 +2,8 @@
 #include <GL/glut.h>
 #include "Game.h"
 #include <memory> // для std::unique_ptr
+#include <cstdlib>
+#include <ctime>
 
 // Глобальный указатель на наш игровой объект.
 // Он нужен, чтобы "статичные" функции GLUT могли до него добраться.
@@ -53,6 +55,7 @@ void handleSpecialKeyRelease(int key, int x, int y) {
 // --- Точка входа в программу ---
 
 int main(int argc, char** argv) {
+    srand(time(NULL));
     // Инициализация GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);

@@ -16,7 +16,7 @@ enum class Owner {
 class Projectile : public GameObject {
 public:
     Projectile(float startX, float startY, int dir, int dmg, Owner owner);
-    void update(float deltaTime, const Map& map) override;
+    void update(float deltaTime, const Map& map, float playerX = 0, float playerY = 0) override;
     void draw() override;
     bool isAlive() const override;
 

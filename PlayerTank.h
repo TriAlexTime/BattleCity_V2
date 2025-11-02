@@ -18,7 +18,7 @@ public:
     /*
      @brief Обновляет логику игрока.
     */
-    void update(float deltaTime, const Map& map) override;
+    void update(float deltaTime, const Map& map, float playerX = 0, float playerY = 0) override;
 
     // Метод fire() будет вызван из handleInput()
 

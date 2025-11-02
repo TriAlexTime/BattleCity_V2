@@ -55,6 +55,12 @@ class Map {
 public:
     Map();
 
+    static const int MAP_WIDTH = 13;
+    static const int MAP_HEIGHT = 13;
+    static const int CELL_SIZE = 48;
+    static const int PARTS_PER_CELL = 6;
+    static const int PART_SIZE = 8; // CELL_SIZE / PARTS_PER_CELL
+
     /*
      Загружает карту из файла (логика из initMap).
      @param filename Имя файла карты
@@ -65,6 +71,8 @@ public:
      Отрисовывает все ячейки карты.
     */
     void draw(bool isOverlay);
+
+    void drawBonuses();
 
     // --- Методы для проверки столкновений ---
 
@@ -99,16 +107,20 @@ public:
     void getEnemySpawn(int index, float& x, float& y) const;
 
 private:
-    // Константы, которые раньше были #define
-    static const int MAP_WIDTH = 13;
-    static const int MAP_HEIGHT = 13;
-    static const int CELL_SIZE = 48;
-    static const int PARTS_PER_CELL = 6;
-    static const int PART_SIZE = 8; // CELL_SIZE / PARTS_PER_CELL
-
+    
     // Двумерный вектор, хранящий все ячейки карты.
     // Это замена cell map[MAP_HEIGHT][MAP_WIDTH]
     std::vector<std::vector<Cell>> grid;
+
+    Part& getPart(int globalPartY, int globalPartX);
+
+    const Part& getPart(int globalPartY, int globalPartX) const;
+
+    /*
+     Отрисовывает разрушенные части (дыры) поверх ячейки.
+     @return Количество разрушенных частей (из 36).
+    */
+    int drawDestroyedParts(float worldX, float worldY, const Cell& cell);
 
     // Координаты спавна
     float playerSpawnX = 0.0f;

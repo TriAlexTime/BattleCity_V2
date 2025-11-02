@@ -1,6 +1,10 @@
 #include "EnemyTank.h"
 #include "Map.h"
 #include <cstdlib>
+#include <vector>
+#include <algorithm>
+#include <random>
+
 
 // Конструктор просто вызывает конструктор базового класса
 EnemyTank::EnemyTank(float startX, float startY, int startDir)
@@ -8,50 +12,87 @@ EnemyTank::EnemyTank(float startX, float startY, int startDir)
     // Здесь можно инициализировать специфичные для ИИ переменные, если нужно
 }
 
-void EnemyTank::update(float deltaTime, const Map& map) {
-    // Вызываем update базового класса Tank.
-    // Он отвечает за таймер перезарядки (fireCooldown) и базовую логику движения.
-    Tank::update(deltaTime, map);
+/*
+ Проверяет, есть ли прямая линия огня до игрока.
+ Это упрощенная "проверка прямой видимости".
+*/
+bool EnemyTank::hasLineOfSight(const Map& map, float playerX, float playerY) {
+    // Проверяем, на одной ли мы оси (с погрешностью)
+    bool alignedX = std::abs(this->x - playerX) < 20.0f;
+    bool alignedY = std::abs(this->y - playerY) < 20.0f;
+
+    if (alignedX) {
+        // Выровнены по X, проверяем вертикальную линию
+        int dir = (playerY > this->y) ? 2 : 1; // 2=DOWN, 1=UP
+        return map.checkTankCollision(this->x, this->y, dir); // Используем checkTankCollision как упрощенный "рейкаст"
+    }
+    else if (alignedY) {
+        // Выровнены по Y, проверяем горизонтальную линию
+        int dir = (playerX > this->x) ? 4 : 3; // 4=RIGHT, 3=LEFT
+        return map.checkTankCollision(this->x, this->y, dir);
+    }
+    return false; // Не на одной линии
+}
+
+void EnemyTank::update(float deltaTime, const Map& map, float playerX, float playerY) {
+    // Вызываем update базового класса (таймер перезарядки)
+    Tank::update(deltaTime, map, playerX, playerY);
 
     aiTimer += deltaTime;
 
-    // --- ЛОГИКА ПРИНЯТИЯ РЕШЕНИЙ ИИ ---
-
-    // Каждые 0.8 секунды танк "думает", что делать дальше
+    // --- ЛОГИКА ПРИНЯТИЯ РЕШЕНИЙ ---
     if (aiTimer > 0.8f) {
         aiTimer = 0.0f; // Сбрасываем таймер
 
-        // Проверяем, не уперлись ли мы в стену
-        if (!map.checkTankCollision(this->x, this->y, this->direction)) {
-            // Путь заблокирован. Выбираем новое случайное направление.
-            int oldDirection = this->direction;
-            // Цикл, чтобы гарантированно получить новое направление
-            while (this->direction == oldDirection) {
-                this->direction = (rand() % 4) + 1; // Случайное направление от 1 до 4
+        bool seesPlayer = hasLineOfSight(map, playerX, playerY);
+
+        if (seesPlayer) {
+            // --- РЕЖИМ "ОХОТЫ" ---
+            // Пытаемся повернуться к игроку
+            if (std::abs(this->x - playerX) < 20.0f) {
+                this->direction = (playerY > this->y) ? 2 : 1;
+            }
+            else if (std::abs(this->y - playerY) < 20.0f) {
+                this->direction = (playerX > this->x) ? 4 : 3;
             }
         }
         else {
-            // Путь свободен. Есть 20% шанс, что танк все равно сменит направление.
-            // Это делает поведение менее предсказуемым.
-            if ((rand() % 100) < 20) {
-                this->direction = (rand() % 4) + 1;
+            // --- РЕЖИМ "БЛУЖДАНИЯ" (Умный) ---
+            // Проверяем, не уперлись ли мы в стену
+            if (!map.checkTankCollision(this->x, this->y, this->direction)) {
+                // Путь заблокирован. Ищем новый.
+                std::vector<int> directions = { 1, 2, 3, 4 };
+                std::random_device rd;
+                std::mt19937 g(rd());
+                std::shuffle(directions.begin(), directions.end(), g);
+
+                for (int newDir : directions) {
+                    if (map.checkTankCollision(this->x, this->y, newDir)) {
+                        this->direction = newDir;
+                        break;
+                    }
+                }
+            }
+            else {
+                // Путь свободен. 20% шанс, что танк все равно сменит направление.
+                if ((rand() % 100) < 20) {
+                    this->direction = (rand() % 4) + 1;
+                }
             }
         }
     }
 
-    // --- ЛОГИКА ДВИЖЕНИЯ ---
+    // --- ЛОГИКА ДВИЖЕНИЯ И БЛОКИРОВКИ ---
+    // (Эта логика выполняется каждый кадр, а не только по таймеру)
 
-    // Пытаемся двигаться в текущем направлении
     if (map.checkTankCollision(this->x, this->y, this->direction)) {
         this->isMoving = true;
+        this->m_isBlockedByWall = false; // Путь свободен, стрелять можно
     }
     else {
         this->isMoving = false;
+        this->m_isBlockedByWall = true; // Уперлись в стену, стрелять НЕЛЬЗЯ
     }
-
-    // Логика стрельбы будет управляться из главного игрового цикла (в классе Game),
-    // который будет вызывать метод fire(), когда fireCooldown <= 0.
-    // Здесь мы просто управляем состоянием танка.
 }
 
 void EnemyTank::draw() {

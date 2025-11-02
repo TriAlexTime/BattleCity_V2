@@ -12,7 +12,7 @@ public:
 
     // 'override' - это подсказка компилятору, что мы намеренно переопределяем метод базового класса.
 
-    void update(float deltaTime, const Map& map) override;
+    void update(float deltaTime, const Map& map, float playerX = 0, float playerY = 0) override;
     bool isAlive() const override;
 
     void draw() override = 0; // Этот метод будут вызывать снаружи

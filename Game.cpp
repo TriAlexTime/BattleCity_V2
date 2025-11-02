@@ -44,14 +44,24 @@ void Game::handleInput(int key, bool isPressed) {
     if (m_gameState != GameState::PLAYING) return;
     if (!m_player->isAlive()) return;
 
-    // Стрельба (обрабатываем здесь)
     if (key == 32 && isPressed) {
-        auto newProjectile = m_player->fire(Owner::PLAYER);
-        if (newProjectile) {
-            m_projectiles.push_back(std::move(newProjectile));
+
+        int playerProjectilesCount = 0;
+        for (auto& p : m_projectiles) {
+            if (p->getOwner() == Owner::PLAYER) {
+                playerProjectilesCount++;
+            }
+        }
+
+        if (playerProjectilesCount < 4) {
+
+            auto newProjectile = m_player->fire(Owner::PLAYER);
+            if (newProjectile) {
+                m_projectiles.push_back(std::move(newProjectile));
+            }
         }
     }
-    // Движение (передаем в танк)
+    // Движение
     else {
         m_player->handleInput(key, isPressed);
     }
@@ -63,7 +73,7 @@ void Game::update(float deltaTime) {
     // 1. Обновляем все объекты
     // Игрок
     if (m_player->isAlive()) {
-        m_player->update(deltaTime, m_map);
+        m_player->update(deltaTime, m_map, 0, 0);
         BonusType pickedBonus = m_map.checkBonusPickup(m_player->getX(), m_player->getY());
         if (pickedBonus != BonusType::NONE) {
             if (pickedBonus == BonusType::HEALTH_UP) {
@@ -91,8 +101,11 @@ void Game::update(float deltaTime) {
 
     // Враги
     for (auto& enemy : m_enemies) {
-        enemy->update(deltaTime, m_map);
-        if (enemy->getFireCooldown() <= 0.0f) {
+        enemy->update(deltaTime, m_map, m_player->getX(), m_player->getY());
+
+        // Стреляем, только если таймер готов И танк не заблокирован
+        if (enemy->getFireCooldown() <= 0.0f && !enemy->isBlocked()) {
+
             auto newProjectile = enemy->fire(Owner::ENEMY);
             if (newProjectile) m_projectiles.push_back(std::move(newProjectile));
         }
@@ -100,7 +113,7 @@ void Game::update(float deltaTime) {
 
     // Снаряды
     for (auto& projectile : m_projectiles) {
-        projectile->update(deltaTime, m_map);
+        projectile->update(deltaTime, m_map, 0, 0);
     }
 
     // 2. Спавн врагов и бонусов
@@ -149,7 +162,7 @@ void Game::render() {
     }
 
     // 3. Рисуем бонусы (предполагаем, что это часть отрисовки карты)
-    // m_map.drawBonuses(); // Если бы выделили в отдельный метод
+    m_map.drawBonuses();
 
     // 4. Рисуем танк игрока
     if (m_player->isAlive()) {
@@ -166,6 +179,25 @@ void Game::render() {
 
     // 7. Рисуем информационную панель
     drawInfoPanel();
+
+    if (m_gameState == GameState::GAME_OVER) {
+        glColor3f(1.0f, 0.0f, 0.0f); // Красный
+        // Рисуем полупрозрачный фон
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+        drawRectangle(0, 0, 800, 624);
+        glDisable(GL_BLEND);
+
+        // Рисуем текст
+        glColor3f(1.0f, 0.1f, 0.1f);
+        drawText(320, 300, GLUT_BITMAP_TIMES_ROMAN_24, "GAME OVER");
+    }
+    else if (m_gameState == GameState::WIN) {
+        // Рисуем текст
+        glColor3f(0.1f, 1.0f, 0.1f);
+        drawText(340, 300, GLUT_BITMAP_TIMES_ROMAN_24, "YOU WIN!");
+    }
 
     // 8. Показываем готовый кадр
     glutSwapBuffers();

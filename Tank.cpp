@@ -19,7 +19,7 @@ Tank::Tank(float startX, float startY, int startDir) {
     this->fireCooldown = 0.0f;
 }
 
-void Tank::update(float deltaTime, const Map& map) {
+void Tank::update(float deltaTime, const Map& map, float playerX, float playerY) {
     // 1. ”правл€ем перезар€дкой
     if (fireCooldown > 0.0f) {
         fireCooldown -= deltaTime;
@@ -51,6 +51,15 @@ void Tank::update(float deltaTime, const Map& map) {
 std::unique_ptr<Projectile> Tank::fire(Owner owner) {
     // —трел€ть можно только если перезар€дка завершена
     if (fireCooldown <= 0.0f) {
+        const float MAP_PIXEL_WIDTH = Map::MAP_WIDTH * Map::CELL_SIZE;
+        const float MAP_PIXEL_HEIGHT = Map::MAP_HEIGHT * Map::CELL_SIZE;
+        const float tankEdge = 20.0f; // ѕоловина ширины/высоты танка
+
+        if (direction == 1 && y <= tankEdge) return nullptr; // UP
+        if (direction == 3 && x <= tankEdge) return nullptr; // LEFT
+        if (direction == 2 && y >= (MAP_PIXEL_HEIGHT - tankEdge)) return nullptr; // DOWN
+        if (direction == 4 && x >= (MAP_PIXEL_WIDTH - tankEdge)) return nullptr; // RIGHT
+
         fireCooldown = fireRate; // —брасываем таймер перезар€дки
 
         // –ассчитываем начальную позицию снар€да, чтобы он по€вл€лс€ у дула танка, а не в его центре

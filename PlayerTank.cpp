@@ -23,8 +23,9 @@ void PlayerTank::handleInput(int key, bool isPressed) {
     }
 }
 
-void PlayerTank::update(float deltaTime, const Map& map) {
-    Tank::update(deltaTime, map);
+void PlayerTank::update(float deltaTime, const Map& map, float playerX, float playerY) {
+    Tank::update(deltaTime, map, playerX, playerY);
+    this->speed = 120.0f;
 }
 
 void PlayerTank::draw() {
