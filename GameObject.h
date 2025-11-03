@@ -3,6 +3,7 @@
 /*
  Тут будет класс для всех динамических объектов на игровой карте
 */
+class Map;
 
 class GameObject {
 public:
@@ -11,9 +12,11 @@ public:
 
     /*
      Обновляет логику объекта (движение, таймеры и т.д.).
-    @param deltaTime Время, прошедшее с последнего кадра.
+     @param deltaTime Время, прошедшее с последнего кадра.
+     @param playerX Координата X игрока (для ИИ).
+     @param playerY Координата Y игрока (для ИИ).
     */
-    virtual void update(float deltaTime, const Map& map) = 0;
+    virtual void update(float deltaTime, const Map& map, float playerX = 0, float playerY = 0) = 0;
 
     /*
      Отрисовывает объект на экране.

@@ -1,5 +1,7 @@
 #include "Projectile.h"
-#include "Map.h" // Нужен для сигнатуры update, хотя мы его здесь не используем
+#include "Map.h"
+#include "Graphics.h"
+#include <GL/glut.h>
 
 Projectile::Projectile(float startX, float startY, int dir, int dmg, Owner owner) {
     this->x = startX;
@@ -12,12 +14,11 @@ Projectile::Projectile(float startX, float startY, int dir, int dmg, Owner owner
     this->m_speed = 250.0f; // Скорость в пикселях в секунду
     this->m_isAlive = true;
 
-    // Уменьшим размер снаряда для проверок столкновений
     this->width = 4;
     this->height = 4;
 }
 
-void Projectile::update(float deltaTime, const Map& map) {
+void Projectile::update(float deltaTime, const Map& map, float playerX, float playerY) {
     if (!m_isAlive) {
         return;
     }
@@ -33,7 +34,7 @@ void Projectile::update(float deltaTime, const Map& map) {
     // Проверяем, не вылетел ли снаряд за пределы карты.
     // Если да, то помечаем его на удаление.
     // Размеры карты 13*48 = 624
-    if (x < 0 || x > 13 * 48 || y < 0 || y > 13 * 48) {
+    if (x < 0 || x >= 13 * 48 || y < 0 || y >= 13 * 48) {
         m_isAlive = false;
     }
 }
@@ -43,11 +44,13 @@ bool Projectile::isAlive() const {
 }
 
 void Projectile::destroy() {
-    m_isAlive = true;
+    m_isAlive = false;
 }
 
-// Функцию draw() нужно будет реализовать с использованием графической библиотеки.
-// Она будет похожа на отрисовку маленького прямоугольника из battlecity.c
 void Projectile::draw() {
-    // Логика отрисовки снаряда
+    if (!m_isAlive) return;
+    glColor3f(1.0f, 0.9f, 0.0f); // Желтый цвет
+    drawRectangle(x - 2, y - 2, x + 2, y + 2);
 }
+
+

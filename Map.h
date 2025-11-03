@@ -20,6 +20,12 @@ enum class BonusType {
     UPGRADE
 };
 
+enum class ProjectileHitResult {
+    NONE,      // Ничего не задето
+    WALL,      // Попадание в обычную стену
+    HQ_HIT     // Попадание в штаб
+};
+
 // Структура для замена массива parts
 struct Part {
     bool exist = true;
@@ -49,6 +55,12 @@ class Map {
 public:
     Map();
 
+    static const int MAP_WIDTH = 13;
+    static const int MAP_HEIGHT = 13;
+    static const int CELL_SIZE = 48;
+    static const int PARTS_PER_CELL = 6;
+    static const int PART_SIZE = 8; // CELL_SIZE / PARTS_PER_CELL
+
     /*
      Загружает карту из файла (логика из initMap).
      @param filename Имя файла карты
@@ -56,17 +68,19 @@ public:
     void loadFromFile(const std::string& filename);
 
     /*
-     Отрисовывает все ячейки карты (логика из drawMap, drawCell).
+     Отрисовывает все ячейки карты.
     */
-    void draw();
+    void draw(bool isOverlay);
 
-    // --- Методы для проверки столкновений (логика из C-функций) ---
+    void drawBonuses();
+
+    // --- Методы для проверки столкновений ---
 
     /*
      Проверяет, может ли танк двигаться в заданном направлении.
      @return true, если путь свободен.
     */
-    bool checkTankCollision(float x, float y, int dir);
+    bool checkTankCollision(float x, float y, int dir) const;
 
     /*
      Проверяет, попал ли снаряд в стену и если да - наносит урон стене.
@@ -76,7 +90,7 @@ public:
      @return true, если снаряд столкнулся и его надо уничтожить.
     */
 
-    bool checkProjectileHit(float& projX, float& projY, int dir, int damage);
+    ProjectileHitResult checkProjectileHit(float& projX, float& projY, int dir, int damage);
 
     // --- Логика бонусов ---
 
@@ -92,17 +106,27 @@ public:
     void getPlayerSpawn(float& x, float& y) const;
     void getEnemySpawn(int index, float& x, float& y) const;
 
-private:
-    // Константы, которые раньше были #define
-    static const int MAP_WIDTH = 13;
-    static const int MAP_HEIGHT = 13;
-    static const int CELL_SIZE = 48;
-    static const int PARTS_PER_CELL = 6;
-    static const int PART_SIZE = 8; // CELL_SIZE / PARTS_PER_CELL
+    /**
+     Проверяет, находится ли точка (x, y) в ячейке с листьями.
+     @return true, если ячейка - листья.
+    */
+    bool isCellLeafs(float x, float y) const;
 
+private:
+    
     // Двумерный вектор, хранящий все ячейки карты.
     // Это замена cell map[MAP_HEIGHT][MAP_WIDTH]
     std::vector<std::vector<Cell>> grid;
+
+    Part& getPart(int globalPartY, int globalPartX);
+
+    const Part& getPart(int globalPartY, int globalPartX) const;
+
+    /*
+     Отрисовывает разрушенные части (дыры) поверх ячейки.
+     @return Количество разрушенных частей (из 36).
+    */
+    int drawDestroyedParts(float worldX, float worldY, const Cell& cell);
 
     // Координаты спавна
     float playerSpawnX = 0.0f;
