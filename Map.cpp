@@ -440,3 +440,15 @@ void Map::drawBonuses() {
         }
     }
 }
+
+bool Map::isCellLeafs(float x, float y) const {
+    int cellX = static_cast<int>(x / CELL_SIZE);
+    int cellY = static_cast<int>(y / CELL_SIZE);
+
+    // Проверка на выход за границы
+    if (cellX < 0 || cellX >= MAP_WIDTH || cellY < 0 || cellY >= MAP_HEIGHT) {
+        return false;
+    }
+
+    return grid[cellY][cellX].material == Material::LEAFS;
+}

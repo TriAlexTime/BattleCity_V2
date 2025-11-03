@@ -41,13 +41,21 @@ void EnemyTank::update(float deltaTime, const Map& map, float playerX, float pla
     aiTimer += deltaTime;
 
     // --- ЛОГИКА ПРИНЯТИЯ РЕШЕНИЙ ---
-    if (aiTimer > 0.8f) {
+    if (aiTimer > 0.8f) { // Решаем что делать каждые 0.8 сек
         aiTimer = 0.0f; // Сбрасываем таймер
 
-        bool seesPlayer = hasLineOfSight(map, playerX, playerY);
+        // 1. Проверяем, видим ли мы игрока
+        bool playerObscured = map.isCellLeafs(playerX, playerY);
+        bool seesPlayer = false;
 
+        if (!playerObscured) { // Если игрок НЕ в листьях
+            seesPlayer = hasLineOfSight(map, playerX, playerY);
+        }
+
+        // 2. РЕЖИМ "ОХОТЫ"
         if (seesPlayer) {
-            // --- РЕЖИМ "ОХОТЫ" ---
+            m_wantsToFire = true; // Мы хотим стрелять!
+
             // Пытаемся повернуться к игроку
             if (std::abs(this->x - playerX) < 20.0f) {
                 this->direction = (playerY > this->y) ? 2 : 1;
@@ -56,8 +64,10 @@ void EnemyTank::update(float deltaTime, const Map& map, float playerX, float pla
                 this->direction = (playerX > this->x) ? 4 : 3;
             }
         }
+        // 3. РЕЖИМ "БЛУЖДАНИЯ" (игрок в листьях или за стеной)
         else {
-            // --- РЕЖИМ "БЛУЖДАНИЯ" (Умный) ---
+            m_wantsToFire = false; // Мы не видим игрока, стрелять не хотим
+
             // Проверяем, не уперлись ли мы в стену
             if (!map.checkTankCollision(this->x, this->y, this->direction)) {
                 // Путь заблокирован. Ищем новый.
@@ -83,15 +93,14 @@ void EnemyTank::update(float deltaTime, const Map& map, float playerX, float pla
     }
 
     // --- ЛОГИКА ДВИЖЕНИЯ И БЛОКИРОВКИ ---
-    // (Эта логика выполняется каждый кадр, а не только по таймеру)
-
+    // (Эта логика выполняется каждый кадр)
     if (map.checkTankCollision(this->x, this->y, this->direction)) {
         this->isMoving = true;
-        this->m_isBlockedByWall = false; // Путь свободен, стрелять можно
+        this->m_isBlockedByWall = false; // Путь свободен
     }
     else {
         this->isMoving = false;
-        this->m_isBlockedByWall = true; // Уперлись в стену, стрелять НЕЛЬЗЯ
+        this->m_isBlockedByWall = true; // Уперлись в стену
     }
 }
 

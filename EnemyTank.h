@@ -17,6 +17,8 @@ public:
 
     bool isBlocked() const { return m_isBlockedByWall; }
 
+    bool wantsToFire() const { return m_wantsToFire; }
+
 private:
     // Таймер для принятия решений ИИ
     float aiTimer = 0.0f;
@@ -25,6 +27,8 @@ private:
     float fireTimer = 0.0f;
 
     bool m_isBlockedByWall = false;
+
+    bool m_wantsToFire = false;
 
     bool hasLineOfSight(const Map& map, float playerX, float playerY);
 };

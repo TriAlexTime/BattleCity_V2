@@ -106,6 +106,12 @@ public:
     void getPlayerSpawn(float& x, float& y) const;
     void getEnemySpawn(int index, float& x, float& y) const;
 
+    /**
+     ѕровер€ет, находитс€ ли точка (x, y) в €чейке с листь€ми.
+     @return true, если €чейка - листь€.
+    */
+    bool isCellLeafs(float x, float y) const;
+
 private:
     
     // ƒвумерный вектор, хран€щий все €чейки карты.

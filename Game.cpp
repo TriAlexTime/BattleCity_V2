@@ -103,8 +103,7 @@ void Game::update(float deltaTime) {
     for (auto& enemy : m_enemies) {
         enemy->update(deltaTime, m_map, m_player->getX(), m_player->getY());
 
-        // Стреляем, только если таймер готов И танк не заблокирован
-        if (enemy->getFireCooldown() <= 0.0f && !enemy->isBlocked()) {
+        if (enemy->getFireCooldown() <= 0.0f && !enemy->isBlocked() && enemy->wantsToFire()) {
 
             auto newProjectile = enemy->fire(Owner::ENEMY);
             if (newProjectile) m_projectiles.push_back(std::move(newProjectile));
